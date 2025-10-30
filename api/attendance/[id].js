@@ -1,8 +1,7 @@
 import db from "../../config/db.js";
 
 export default function handler(req, res) {
-  if (req.method !== "DELETE")
-    return res.status(405).json({ message: "Method not allowed" });
+  if (req.method !== "DELETE") return res.status(405).json({ message: "Method not allowed" });
 
   const { id } = req.query;
   const recordId = parseInt(id);
@@ -12,6 +11,7 @@ export default function handler(req, res) {
   db.query(sql, [recordId], (err, result) => {
     if (err) return res.status(500).json({ message: "Database delete error", error: err.message });
     if (result.affectedRows === 0) return res.status(404).json({ message: "Record not found" });
-    res.json({ message: `Record ${recordId} deleted` });
+
+    res.status(200).json({ message: `Record ${recordId} deleted` });
   });
 }

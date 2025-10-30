@@ -13,29 +13,51 @@ module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  if (req.method === 'GET') {
+  if (req.method === 'DELETE') {
     try {
-      const connection = await mysql.createConnection(dbConfig);
-      await connection.execute('SELECT 1 as test');
-      await connection.end();
+      // Extract ID from the URL path
+      const id = req.query.id || req.url.split('/').pop();
+      const recordId = parseInt(id);
       
+      if (isNaN(recordId)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid ID format' 
+        });
+      }
+
+      const connection = await mysql.createConnection(dbConfig);
+      const [result] = await connection.execute(
+        'DELETE FROM Attendance WHERE id = ?',
+        [recordId]
+      );
+      await connection.end();
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Record not found' 
+        });
+      }
+
       res.status(200).json({ 
-        status: 'ok', 
-        message: 'Backend and database connected', 
-        time: new Date().toISOString() 
+        success: true, 
+        message: 'Record deleted successfully',
+        deletedId: recordId
       });
+      
     } catch (error) {
-      console.error('Health check error:', error);
+      console.error('Delete error:', error);
       res.status(500).json({ 
-        status: 'error', 
-        message: 'Database connection failed', 
+        success: false, 
+        message: 'Database delete error', 
         error: error.message 
       });
     }

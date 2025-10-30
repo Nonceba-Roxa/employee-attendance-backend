@@ -1,7 +1,8 @@
 import db from "../../config/db.js";
 
 export default function handler(req, res) {
-  if (req.method !== "DELETE") return res.status(405).json({ message: "Method not allowed" });
+  if (req.method !== "DELETE")
+    return res.status(405).json({ message: "Method not allowed" });
 
   const { id } = req.query;
   const recordId = parseInt(id);
